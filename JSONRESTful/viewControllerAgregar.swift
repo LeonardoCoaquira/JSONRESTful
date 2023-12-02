@@ -50,7 +50,7 @@ class viewControllerAgregar: UIViewController {
         let duracion = txtDuracion.text!
         let datos = ["usuarioId":1,"nombre":"\(nombre)", "genero":"\(genero)", "duracion":"\(duracion)"] as Dictionary<String, Any>
         let ruta = "http://localhost:3000/peliculas/\(pelicula!.id)"
-        metodoPOST(ruta: ruta, datos: datos)
+        metodoPUT(ruta: ruta, datos: datos)
         navigationController?.popViewController(animated: true)
     }
     /*

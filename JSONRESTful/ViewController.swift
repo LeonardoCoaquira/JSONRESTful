@@ -12,6 +12,8 @@ class ViewController: UIViewController {
     @IBOutlet weak var txtUsuario: UITextField!
     @IBOutlet weak var txtContrasena: UITextField!
     
+    var userCurrent:Users?
+    
     var users = [Users]()
     
     override func viewDidLoad() {
@@ -42,11 +44,14 @@ class ViewController: UIViewController {
         let contrasena = txtContrasena.text!
         let url = ruta + "nombre=\(usuario)&clave=\(contrasena)"
         let crearURL = url.replacingOccurrences(of: " ", with: "%20")
-        validarUsuario(ruta: crearURL) {
+        validarUsuario(ruta: crearURL) { [self] in
+            
             if self.users.count <= 0 {
                 print("Nombre de usuario y/o contraseña es incorrecto")
             } else {
+                SessionManager.shared.usuario = self.users.first
                 print("Logeo Exitoso")
+                self.userCurrent = self.users.first
                 self.performSegue(withIdentifier: "segueLogeo", sender: nil)
                 for data in self.users {
                     print("id\(data.id),nombre:\(data.nombre),nombre:\(data.email)")
@@ -55,4 +60,3 @@ class ViewController: UIViewController {
         }
     }
 }
-

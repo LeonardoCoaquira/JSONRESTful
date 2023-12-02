@@ -10,6 +10,7 @@ import UIKit
 class viewControllerBuscar: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     var peliculas = [Peliculas]()
+    var user:Users?
     
     @IBOutlet weak var txtBuscar: UITextField!
     
@@ -45,6 +46,7 @@ class viewControllerBuscar: UIViewController, UITableViewDelegate, UITableViewDa
         cargarPeliculas(ruta: ruta) {
             self.tablaPeliculas.reloadData()
         }
+        tablaPeliculas.allowsSelectionDuringEditing = true
         // Do any additional setup after loading the view.
     }
     
@@ -109,9 +111,50 @@ class viewControllerBuscar: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "segueEditar" {
-            let siguienteVC = segue.destination as! viewControllerAgregar
-            siguienteVC.pelicula = sender as? Peliculas
+        if segue.identifier == "seguePerfil" {
+            let siguienteVC = segue.destination as! viewControllerPerfil
+            siguienteVC.user = SessionManager.shared.usuario
+        } else if segue.identifier == "seguePerfil" {
+            let siguienteVC = segue.destination as! viewControllerPerfil
+            siguienteVC.user = sender as? Users
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            confirmMovieDeletion(indexPath: indexPath)
+        }
+    }
+
+    func confirmMovieDeletion(indexPath: IndexPath) {
+        let alert = UIAlertController(title: "Confirm Deletion", message: "Are you sure you want to delete this movie?", preferredStyle: .alert)
+        let deleteAction = UIAlertAction(title: "Yes", style: .destructive) { (action) in
+            self.deleteMovie(at: indexPath)
+        }
+        let cancelAction = UIAlertAction(title: "No", style: .cancel, handler: nil)
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        present(alert, animated: true, completion: nil)
+    }
+
+    func deleteMovie(at indexPath: IndexPath) {
+        let movieToDelete = peliculas[indexPath.row]
+        peliculas.remove(at: indexPath.row)
+        tablaPeliculas.deleteRows(at: [indexPath], with: .fade)
+
+        // Aquí se debe realizar la solicitud HTTP para eliminar la película del servidor
+        if let url = URL(string: "http://localhost:3000/peliculas/\(movieToDelete.id)") {
+            var request = URLRequest(url: url)
+            request.httpMethod = "DELETE"
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("Error al eliminar la película: \(error)")
+                    // Manejar el error, por ejemplo, mostrar una alerta
+                } else {
+                    // La película se eliminó correctamente del servidor
+                }
+            }.resume()
         }
     }
 }
